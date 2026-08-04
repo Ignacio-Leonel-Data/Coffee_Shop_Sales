@@ -1,6 +1,8 @@
-📊 Scripts y Análisis EDA – Tablero Coffee Shop Sales
-Este documento reúne el flujo completo de exploración, limpieza, preparación de datos, cálculo de métricas y visualizaciones desarrollado en Python (Google Colab), organizados según la estructura del proyecto.
+# 📊 Scripts y Análisis EDA – Tablero Coffee Shop Sales
 
+Este documento reúne el flujo completo de exploración, limpieza, preparación de datos, cálculo de métricas y visualizaciones desarrollado en **Python (Google Colab)**, organizados según la estructura del proyecto.
+
+---
 📁 Configuración y Entorno
 🔹 Importación de Librerías
 Python
