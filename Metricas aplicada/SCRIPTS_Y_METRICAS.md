@@ -1,148 +1,271 @@
-# 📊 Scripts y Análisis EDA – Tablero Coffee Shop Sales
+# 📊 Medidas DAX – Tablero Power BI Nike (2020–2024)
 
-Este documento reúne el flujo completo de exploración, limpieza, preparación de datos, cálculo de métricas y visualizaciones desarrollado en **Python (Google Colab)**, organizados según la estructura del proyecto.
+Este documento reúne las principales medidas DAX utilizadas en el dashboard desarrollado en **Power BI**, organizadas según la estructura del proyecto.
 
 ---
 
-# 📁 Configuración y Entorno
+# 📁 Análisis General
 
-## 🔹 Importación de Librerías
+## 🔹 Calificación Crecimiento
 
-```python
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import data_profiling
-from data_profiling import ProfileReport
-📁 Limpieza y Preparación de Datos
-🔹 Carga del Dataset
-Python
-df = pd.read_excel('/content/Coffee Shop Sales.xlsx')
-🔹 Exploración Estructural y Control de Nulos
-Python
-# Verificación de valores faltantes
-missing_values = df.isnull().sum()
-print(missing_values)
+```DAX
+Crecimiento =
+VAR Pelota = UNICHAR(127936)
 
-# Información general del conjunto de datos
-df.info()
-🔹 Ingeniería de Funciones (Feature Engineering)
-Python
-# Conversión y formato de tiempo
-df['transaction_time'] = df['transaction_time'].astype(str)
-df['transaction_time'] = pd.to_timedelta(df['transaction_time'])
+VAR TasaCrecimiento =
+    VAR Ventas_Actuales = [Fact. Total]
+    VAR Ventas_Anteriores =
+        CALCULATE(
+            [Fact. Total],
+            DATEADD('Calendario DAX'[Date], -1, QUARTER)
+        )
 
-# Creación del campo Datetime consolidado
-df['datetime'] = df['transaction_date'] + df['transaction_time']
+    RETURN
+        DIVIDE(Ventas_Actuales - Ventas_Anteriores, Ventas_Anteriores)
 
-# Cálculo de la facturación total
-df['sales'] = df['transaction_qty'] * df['unit_price']
+RETURN
+    SWITCH(
+        TRUE(),
+        TasaCrecimiento <= 0, REPT(Pelota,1),
+        TasaCrecimiento <= 0.05, REPT(Pelota,2),
+        TasaCrecimiento <= 0.15, REPT(Pelota,3),
+        TasaCrecimiento <= 0.30, REPT(Pelota,4),
+        REPT(Pelota,5)
+    )
+```
 
-# Extracción de variables temporales
-df['day_of_week'] = df['datetime'].dt.day_name()
-df['month'] = df['datetime'].dt.to_period('M')
-df['hour'] = df['datetime'].dt.hour
-📁 Análisis por Sucursal (Store Location)
-🔹 Facturación y Transacciones por Ubicación
-Python
-df_location = df.groupby('store_location').agg({
-    'sales': 'sum',
-    'transaction_id': 'count'
-})
-🔹 Evolución de Ventas Diarias por Ubicación
-Python
-daily_sales_by_location = df.groupby(['transaction_date', 'store_location'])['sales'].sum().unstack()
+---
 
-# Gráfico de líneas
-daily_sales_by_location.plot(figsize=(14, 8), title='Daily Sales by Location')
-plt.xlabel('Date')
-plt.ylabel('Total Sales ($)')
-plt.legend(title='Store Location')
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+## 🔹 Facturación Promedio
 
-# Gráfico de área acumulada
-plt.figure(figsize=(14, 8))
-plt.stackplot(daily_sales_by_location.index, daily_sales_by_location.T, labels=daily_sales_by_location.columns)
-plt.title('Daily Sales by Store Location (Stacked Area Chart)')
-plt.xlabel('Date')
-plt.ylabel('Total Sales ($)')
-plt.legend(title='Store Location', loc='upper left')
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-📁 Análisis Temporal
-🔹 Comparativo Semanal por Ubicación
-Python
-weekly_sales = df.groupby(['day_of_week', 'store_location'])['sales'].sum().unstack()
+```DAX
+Facturación Promedio =
+AVERAGE(Ventas[Total Facturado])
+```
 
-# Ordenamiento cronológico de los días
-days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-weekly_sales = weekly_sales.reindex(days_order)
+---
 
-# Visualización en barras
-weekly_sales[["Astoria", "Hell's Kitchen", "Lower Manhattan"]].plot(kind='bar', figsize=(14, 8))
-plt.xlabel('Day of the Week', fontweight='bold')
-plt.ylabel('Total Sales ($)', fontweight='bold')
-plt.title('Weekly Sales by Store Location')
-plt.legend(title='Store Location', loc='upper left')
-plt.tight_layout()
-plt.show()
-🔹 Comportamiento Mensual
-Python
-monthly_sales = df.groupby('month')['sales'].sum().reset_index()
+## 🔹 Facturación Total
 
-monthly_sales.plot(figsize=(14, 8), title='Monthly Sales')
-plt.xlabel('Month')
-plt.ylabel('Total Sales ($)')
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-📁 Comportamiento de Producto
-🔹 Ticket Promedio y Facturación por Categoría
-Python
-df_category = df.groupby('product_category').agg({
-    'sales': 'sum',
-    'transaction_id': 'count'
-}).sort_values('sales', ascending=False)
+```DAX
+Facturación Total =
+SUM(Ventas[Total Facturado])
+```
 
-# Cálculo de Venta Promedio por Transacción
-df_category['avg_sales'] = df_category['sales'] / df_category['transaction_id']
-🔹 Desglose por Tipo de Producto en cada Categoría
-Python
-product_sales_df = df.groupby(['product_category', 'product_type'])['sales'].sum().reset_index()
+---
 
-categories = product_sales_df['product_category'].unique()
+## 🔹 Margen Alto (%)
 
-for category in categories:
-    plt.figure(figsize=(5, 5))
-    category_data = product_sales_df[product_sales_df['product_category'] == category]
-    sns.barplot(data=category_data, x='product_type', y='sales')
+```DAX
+Margen Alto (%) =
+CALCULATE(
+    COUNTROWS(Ventas),
+    Ventas[Margen_Evaluado] = "Margen Alto"
+) / COUNTROWS(Ventas)
+```
 
-    plt.title(f'Sales by Product Type in {category}')
-    plt.xlabel('Product Type')
-    plt.ylabel('Total Sales ($)')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
-📁 Análisis Horario (Horas Pico)
-🔹 Distribución de Ventas por Hora y Ubicación
-Python
-hourly_sales_by_location = df.groupby(['store_location', 'hour'])['sales'].sum().reset_index()
+---
 
-plt.figure(figsize=(14, 8))
-sns.barplot(data=hourly_sales_by_location, x='hour', y='sales', hue='store_location')
+## 🔹 Margen Bajo (%)
 
-plt.title('Hourly Sales by Store Location')
-plt.xlabel('Hour of the Day')
-plt.ylabel('Total Sales ($)')
-plt.legend(title='Store Location', loc='upper right')
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+```DAX
+Margen Bajo (%) =
+CALCULATE(
+    COUNTROWS(Ventas),
+    Ventas[Margen_Evaluado] = "Margen Bajo"
+) / COUNTROWS(Ventas)
+```
+
+---
+
+## 🔹 Margen Medio (%)
+
+```DAX
+Margen Medio (%) =
+CALCULATE(
+    COUNTROWS(Ventas),
+    Ventas[Margen_Evaluado] = "Margen Medio"
+) / COUNTROWS(Ventas)
+```
+
+---
+
+## 🔹 Margen Operativo
+
+```DAX
+Margen Operativo =
+SUM(Ventas[Margen Operativo])
+```
+
+---
+
+## 🔹 Rentabilidad
+
+```DAX
+Rentabilidad =
+SUM(Ventas[Rentabilidad ($)])
+```
+
+---
+
+## 🔹 Tasa Facturación YoY
+
+```DAX
+Tasa Facturación YoY =
+VAR __PREV_YEAR =
+    CALCULATE(
+        [Facturación Total],
+        DATEADD('CALENDARIO'[Fecha], -1, YEAR)
+    )
+
+RETURN
+IF(
+    NOT(ISBLANK(__PREV_YEAR)),
+    DIVIDE([Facturación Total] - __PREV_YEAR, __PREV_YEAR),
+    BLANK()
+)
+```
+
+---
+
+## 🔹 Total Facturado
+
+```DAX
+Fact. Total =
+SUM(Nike_Ventas[Total Facturado])
+```
+
+---
+
+## 🔹 Cantidad de Ventas
+
+```DAX
+Cant de Ventas =
+COUNTROWS(Nike_Ventas)
+```
+
+---
+
+# 📁 Comportamiento Comercial
+
+## 🔹 Evaluación Tasa
+
+```DAX
+Evaluación Tasa =
+
+VAR Zapatilla = UNICHAR(128095)
+
+VAR __PREV_MONTH =
+    CALCULATE(
+        [Fact. Total],
+        DATEADD('Calendario DAX'[Date], -1, MONTH)
+    )
+
+VAR __VARIACION =
+    DIVIDE([Fact. Total] - __PREV_MONTH, __PREV_MONTH, 0)
+
+RETURN
+
+IF(
+    SELECTEDVALUE('Calendario DAX'[Mes]) IN VALUES('Calendario DAX'[Mes]),
+
+    SWITCH(
+        TRUE(),
+        __VARIACION < 0, REPT(Zapatilla,1),
+        __VARIACION <= 0.05, REPT(Zapatilla,2),
+        __VARIACION <= 0.10, REPT(Zapatilla,3),
+        __VARIACION <= 0.20, REPT(Zapatilla,4),
+        REPT(Zapatilla,5)
+    ),
+
+    BLANK()
+)
+```
+
+---
+
+## 🔹 Mensaje Resumen
+
+```DAX
+Mensaje_Resumen =
+"Explore los productos más rentables, campañas más efectivas y el comportamiento mensual en el año "
+&
+SELECTEDVALUE('Calendario'[Año])
+```
+
+---
+
+# 📁 Conclusión
+
+## 🔹 Mediana
+
+```DAX
+Mediana =
+PERCENTILE.INC(
+    Nike_Ventas[Rentabilidad ($)],
+    0.50
+)
+```
+
+---
+
+## 🔹 Margen Operativo
+
+```DAX
+Margen Operativo =
+SUM(Nike_Ventas[Margen Operativo])
+```
+
+---
+
+# 📁 Tooltips
+
+## 🔹 Narrativa Tooltip
+
+```DAX
+Texto Tooltip =
+
+VAR Texto = "Para el Estado de "
+VAR Texto1 = ", se consolidó una facturación de "
+VAR Texto2 = ", una rentabilidad de "
+VAR Texto3 = " y un total de "
+VAR Texto4 = " ventas."
+
+VAR Estados =
+    SELECTEDVALUE(Estado[State])
+
+VAR Facturacion =
+    FORMAT([Fact. Total], "$ #,##0")
+
+VAR Rentabilidad =
+    FORMAT([Rentabilidad], "$ #,##0")
+
+VAR CantidadVentas =
+    FORMAT([Cant de Ventas], "#,##0")
+
+RETURN
+
+Texto &
+Estados &
+Texto1 &
+Facturacion &
+Texto2 &
+Rentabilidad &
+Texto3 &
+CantidadVentas &
+Texto4
+```
+
+---
+
+# 📁 Análisis de Eficiencia
+
+## 🔹 Parámetro de Campos
+
+```DAX
+{
+    ("Margen Bajo (%)", NAMEOF('Tabla Medidas'[Margen Bajo (%)]), 0),
+    ("Margen Medio (%)", NAMEOF('Tabla Medidas'[Margen Medio (%)]), 1),
+    ("Margen Alto (%)", NAMEOF('Tabla Medidas'[Margen Alto (%)]), 2)
+}
+```
