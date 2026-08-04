@@ -3,9 +3,12 @@
 Este documento reúne el flujo completo de exploración, limpieza, preparación de datos, cálculo de métricas y visualizaciones desarrollado en **Python (Google Colab)**, organizados según la estructura del proyecto.
 
 ---
-📁 Configuración y Entorno
-🔹 Importación de Librerías
-Python
+
+# 📁 Configuración y Entorno
+
+## 🔹 Importación de Librerías
+
+```python
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
