@@ -16,32 +16,40 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import data_profiling
 from data_profiling import ProfileReport
+
 📁 Limpieza y Preparación de Datos
 🔹 Carga del Dataset
 Python
 df = pd.read_excel('/content/Coffee Shop Sales.xlsx')
+
 🔹 Control de Valores Nulos
 Python
 missing_values = df.isnull().sum()
 print(missing_values)
+
 🔹 Exploración de Estructura e Info
 Python
 df.info()
+
 🔹 Formato y Conversión de Tiempos
 Python
 df['transaction_time'] = df['transaction_time'].astype(str)
 df['transaction_time'] = pd.to_timedelta(df['transaction_time'])
+
 🔹 Cálculo de Facturación Total
 Python
 df['sales'] = df['transaction_qty'] * df['unit_price']
+
 🔹 Consolidación de Datetime
 Python
 df['datetime'] = df['transaction_date'] + df['transaction_time']
+
 🔹 Extracción de Variables Temporales (Día, Mes, Hora)
 Python
 df['day_of_week'] = df['datetime'].dt.day_name()
 df['month'] = df['datetime'].dt.to_period('M')
 df['hour'] = df['datetime'].dt.hour
+
 📁 Análisis por Sucursal (Store Location)
 🔹 Facturación y Transacciones por Ubicación
 Python
@@ -52,6 +60,7 @@ df_location = df.groupby('store_location').agg({
 🔹 Ventas Diarias Pivoteadas por Ubicación
 Python
 daily_sales_by_location = df.groupby(['transaction_date', 'store_location'])['sales'].sum().unstack()
+
 🔹 Gráfico de Líneas - Evolución Diaria
 Python
 daily_sales_by_location.plot(figsize=(14, 8), title='Daily Sales by Location')
@@ -62,6 +71,7 @@ plt.grid(True)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
 🔹 Gráfico de Área Acumulada por Ubicación
 Python
 plt.figure(figsize=(14, 8))
@@ -74,6 +84,7 @@ plt.grid(True)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
 📁 Análisis Temporal
 🔹 Comparativo Semanal Reordenado por Sucursal
 Python
@@ -88,6 +99,7 @@ plt.title('Weekly Sales by Store Location')
 plt.legend(title='Store Location', loc='upper left')
 plt.tight_layout()
 plt.show()
+
 🔹 Comportamiento Mensual de Ventas
 Python
 monthly_sales = df.groupby('month')['sales'].sum().reset_index()
@@ -99,6 +111,7 @@ plt.grid(True)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
 📁 Comportamiento de Producto
 🔹 Ticket Promedio por Categoría de Producto
 Python
@@ -108,12 +121,14 @@ df_category = df.groupby('product_category').agg({
 }).sort_values('sales', ascending=False)
 
 df_category['avg_sales'] = df_category['sales'] / df_category['transaction_id']
+
 🔹 Promedio de Precio por Tipo de Producto
 Python
 sales_by_product = df.groupby('product_type').agg({
     'sales': 'sum',
     'unit_price': 'mean'
 }).sort_values('sales', ascending=False)
+
 🔹 Desglose por Tipo de Producto en cada Categoría
 Python
 product_sales_df = df.groupby(['product_category', 'product_type'])['sales'].sum().reset_index()
@@ -130,6 +145,7 @@ for category in categories:
     plt.xticks(rotation=45)
     plt.show()
     plt.tight_layout()
+
 📁 Análisis Horario (Horas Pico)
 🔹 Distribución de Ventas por Hora y Sucursal
 Python
