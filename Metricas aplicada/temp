@@ -15,11 +15,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import data_profiling
 from data_profiling import ProfileReport
+
 📁 Carga y Exploración Inicial
 🔹 Carga del Dataset
 Python
 df = pd.read_excel('/content/Coffee Shop Sales.xlsx')
 df.head()
+
 🔹 Control de Nulos y Estructura
 Python
 # Verificación de valores nulos
@@ -28,6 +30,7 @@ print(missing_values)
 
 # Información general de los tipos de datos
 df.info()
+
 📁 Transformación de Datos (Feature Engineering)
 🔹 Ajuste de Tiempos y Creación de Datetime
 Python
@@ -37,10 +40,12 @@ df['transaction_time'] = pd.to_timedelta(df['transaction_time'])
 
 # Combinación de Fecha y Hora en una sola variable Datetime
 df['datetime'] = df['transaction_date'] + df['transaction_time']
+
 🔹 Cálculo de Ventas Totales
 Python
 # Creación de la columna de Facturación Total ($)
 df['sales'] = df['transaction_qty'] * df['unit_price']
+
 🔹 Extracción de Variables Temporales (Hora, Día, Mes)
 Python
 # Día de la semana
@@ -51,6 +56,7 @@ df['month'] = df['datetime'].dt.to_period('M')
 
 # Hora del día
 df['hour'] = df['datetime'].dt.hour
+
 📁 Análisis Agrupado por Ubicación (Store Location)
 🔹 Rendimiento General por Sucursal
 Python
@@ -60,6 +66,7 @@ df_location = df.groupby('store_location').agg({
 })
 
 df_location
+
 🔹 Evolución de Ventas Diarias por Sucursal (Line & Stacked Plot)
 Python
 # Tabla pivote de ventas diarias por ubicación
@@ -86,6 +93,7 @@ plt.grid(True)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
 📁 Análisis Temporal (Días y Meses)
 🔹 Ventas Semanales por Sucursal
 Python
@@ -103,6 +111,7 @@ plt.title('Weekly Sales by Store Location')
 plt.legend(title='Store Location', loc='upper left')
 plt.tight_layout()
 plt.show()
+
 🔹 Ventas Mensuales acumuladas
 Python
 monthly_sales = df.groupby('month')['sales'].sum().reset_index()
@@ -114,6 +123,7 @@ plt.grid(True)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
 📁 Análisis por Producto y Categoría
 🔹 Performance y Ticket Promedio por Categoría
 Python
@@ -125,6 +135,7 @@ df_category = df.groupby('product_category').agg({
 # Cálculo de Ticket Promedio por Categoría
 df_category['avg_sales'] = df_category['sales'] / df_category['transaction_id']
 df_category
+
 🔹 Ventas por Tipo de Producto en Cada Categoría
 Python
 product_sales_df = df.groupby(['product_category', 'product_type'])['sales'].sum().reset_index()
@@ -143,6 +154,7 @@ for category in categories:
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
 📁 Análisis Horario (Horas Pico)
 🔹 Ventas por Hora y Sucursal
 Python
@@ -158,3 +170,4 @@ plt.legend(title='Store Location', loc='upper right')
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+
